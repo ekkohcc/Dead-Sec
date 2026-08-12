@@ -67,3 +67,4 @@ dead-sec start -u https://your-app.com -r ""
 ## 免责声明
 
 仅用于**你拥有或已获书面授权**的目标。未授权扫描/渗透测试在多数司法辖区属违法行为。
+# Dead-Sec
