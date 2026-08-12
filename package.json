@@ -1,0 +1,20 @@
+{
+  "name": "dead-sec",
+  "version": "1.0.0",
+  "description": "Dead Sec - AI pentester agent (Shannon-style). Users bring their own model API key.",
+  "type": "module",
+  "bin": {
+    "dead-sec": "./bin/dead-sec.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "pentest",
+    "agent",
+    "ai",
+    "appsec"
+  ]
+}
