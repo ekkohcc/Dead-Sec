@@ -1,6 +1,6 @@
 # Dead Sec
 
-AI 渗透测试 agent（Shannon 风格开源实现）。用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
+AI 渗透测试 用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
 
 ## 安装
 
