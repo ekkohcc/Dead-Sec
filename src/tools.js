@@ -2,6 +2,8 @@ import { exec } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+import { getSkill, discoverSkills } from "./skills.js";
+
 export const WORKSPACE = process.cwd();
 export const DELIVERABLES = path.join(WORKSPACE, ".dead-sec", "deliverables");
 export const POCS = path.join(WORKSPACE, ".dead-sec", "pocs");
@@ -150,15 +152,28 @@ export const TOOLS = [
       content: "self-contained PoC script (with target URL, payloads, expected output)",
     },
   },
+  {
+    name: "use_skill",
+    description: "Explicitly load a custom skill by name (~/.dead-sec/skills/ or ./.dead-sec/skills/). Skills matching the current request are normally auto-activated in the system prompt; use this only for manual override or if no skill was auto-activated.",
+    tool_input: { name: "skill name (run 'dead-sec skills' or ask the user for the list)" },
+  },
 ];
 
 const HANDLERS = {
-  run_command: (a) => runCommand(a.cmd || "", a.timeout),
+  run_command: (a) => runCommand(a.command || a.cmd || "", a.timeout),
   read_file: (a) => readFile(a.path || ""),
   search_files: (a) => searchFiles(a.pattern || "", a.path || "."),
   fetch_url: (a) => fetchUrl(a.url || ""),
   save_deliverable: (a) => saveDeliverable(a.type || "", a.content || ""),
   save_poc: (a) => savePoc(a.id || "poc", a.language || "bash", a.content || ""),
+  use_skill: (a) => {
+    const skill = getSkill(String(a.name || "").trim());
+    if (!skill) {
+      const available = discoverSkills().map((s) => s.name);
+      return `SKILL NOT FOUND: ${a.name}. Available: ${available.join(", ") || "(none)"}`;
+    }
+    return `[skill: ${skill.name}]\n${skill.description}\n\n${skill.body}`;
+  },
 };
 
 export function dispatch(name, args) {

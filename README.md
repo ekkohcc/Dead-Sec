@@ -1,6 +1,6 @@
 # Dead Sec
 
-AI 渗透测试 agent（Shannon 风格开源实现）。用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
+AI 渗透测试 agent,用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
 
 ## 安装
 
@@ -24,23 +24,34 @@ export DEAD_SEC_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
 export DEAD_SEC_MODEL=gemini-3.6-flash
 ```
 
-## 运行
+## 使用（对话式）
 
 ```bash
-# 白盒：有源码
-dead-sec start -u https://your-app.com -r /path/to/source
-
-# 黑盒：无源码
-dead-sec start -u https://your-app.com -r ""
+dead-sec                    # 进入聊天界面（终端对话框）
+dead-sec -u https://your-app.com   # 带目标进入，agent 只围绕该目标行动
+dead-sec -u <url> -p "开始扫描"    # 进入后立即执行一条指令
 ```
 
-## 流水线（5 阶段）
+聊天界面内命令：
 
-1. `PRE_RECON` — 指纹收集 + 源码密钥/入口点搜索
-2. `RECON` — 攻击面映射（端点、参数、认证）
-3. 漏洞分析 ×5 — injection / xss / auth / ssrf / authz 五类假设生成
-4. `EXPLOITATION` — 实际利用验证，**自动生成 PoC 脚本**，未验证的丢弃
-5. `REPORT` — **自动整理成标准漏洞报告**，只含已验证漏洞
+```
+/help             显示帮助
+/clear            清屏
+/target <url>     设定/切换会话目标（注入上下文）
+/skills           列出已安装的自定义 skill (当然也可以自然语言添加某个skill)
+/use <skill>      手动注入某个 skill
+/quit / Ctrl+C    退出
+```
+
+agent 会在需要时自动调用工具（灰色日志显示 `⚙ <tool>`），也可以纯聊天问答（自动降级，无需工具）。
+
+## 自动流水线（可选，一次性扫描）
+
+```bash
+dead-sec scan -u https://your-app.com [-r /path/to/source] [--quiet]
+```
+
+9 阶段：PRE_RECON → RECON → 注入/XSS/认证/SSRF/越权 ×5 分析 → EXPLOITATION（实际利用 + 自动 PoC）→ REPORT（自动整理标准报告，只含已验证漏洞）。
 
 ## 输出
 
@@ -55,16 +66,48 @@ dead-sec start -u https://your-app.com -r ""
     └── poc_DS-001-sql-login-bypass.py
 ```
 
-**标准报告结构**（report.md，模型跑完 REPORT 阶段后由程序兜底自动生成，保证始终存在）：
-报告信息 → 执行摘要（各等级数量统计） → 范围与方法 → 漏洞汇总表（ID/等级/端点/状态） → 漏洞详情（描述/复现步骤/PoC/影响/修复建议） → PoC 文件索引 → 附录
+**标准报告结构**（report.md，自动生成兜底保证始终存在）：报告信息 → 执行摘要 → 范围与方法 → 漏洞汇总表 → 漏洞详情（描述/复现/PoC/影响/修复） → PoC 索引 → 附录。
 
-**PoC**：EXPLOITATION 阶段对每个验证成功的漏洞自动写入 `pocs/poc_<id>.<py|sh>`，脚本自带目标 URL、payload 和断言，可直接运行复现。
+**PoC**：对每个验证成功的漏洞自动写入 `pocs/poc_<id>.<py|sh>`，自带目标 URL、payload 和断言，可直接复现。
+
+## 自定义 Skill（你自己的方法论）
+
+你可以添加自己的 skill，agent 会在对话中按需加载执行：
+
+```
+~/.dead-sec/skills/<name>/SKILL.md        # 用户级（所有项目可见）
+.dead-sec/skills/<name>/SKILL.md          # 项目级（覆盖用户级同名 skill）
+```
+
+格式（支持 YAML 风格 frontmatter）：
+
+```markdown
+---
+name: sqli-check
+description: 对登录接口执行快速 SQLi 检查（报错型 + 布尔型）
+---
+
+# 步骤
+
+1. 用 fetch_url 获取目标首页，找到登录/查询接口
+2. ...
+```
+
+创建与查看：
+
+```bash
+dead-sec skill new <name>   # 生成模板（用户级）
+dead-sec skills             # 列出所有已安装 skill
+```
+
+- agent 的系统提示词会注入 skill 清单（name + description），相关时自动调用 `use_skill` 工具加载全文并遵循
+- 也可以输入 `/use <name>` 手动注入
+- 聊天中 `use_skill` 与其他工具一样在灰色日志中可见
 
 ## Agent 工具
 
-`run_command`（扫描/请求/利用）、`read_file`、`search_files`、`fetch_url`、`save_deliverable`（阶段交付物）、`save_poc`（PoC 脚本）。
+`run_command`（扫描/请求/利用）、`read_file`、`search_files`、`fetch_url`、`save_deliverable`、`save_poc`、`use_skill`（加载用户自定义 skill）。
 
 ## 免责声明
 
 仅用于**你拥有或已获书面授权**的目标。未授权扫描/渗透测试在多数司法辖区属违法行为。
-# Dead-Sec

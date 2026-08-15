@@ -28,5 +28,5 @@ export async function chat(cfg, messages, { jsonMode = false, temperature = 0.2,
   if (content == null) {
     throw new Error("Unexpected LLM response: " + JSON.stringify(data).slice(0, 500));
   }
-  return content;
+  return { content, usage: data.usage || null };
 }
