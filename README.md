@@ -1,6 +1,10 @@
 # Dead Sec
 
+<<<<<<< HEAD
 AI 渗透测试 agent,用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
+=======
+AI 渗透测试 用户自带模型 API Key（OpenAI 兼容接口，免费模型通用）。核心理念：**No Exploit, No Report** —— 只报告实际利用/验证过的漏洞。
+>>>>>>> 03394cbae8544672ee45dcabd1794d9baf76f231
 
 ## 安装
 
